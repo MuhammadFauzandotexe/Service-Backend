@@ -1,58 +1,51 @@
 pipeline {
     agent {
         docker {
-            image 'node:16-buster-slim' // Menggunakan image Node.js
-            args '-p 3000:3000' // Mapping port jika diperlukan
+            image 'maven:3.8.5-openjdk-17-slim' // Docker image Maven dengan JDK 17
+            args '-v $HOME/.m2:/root/.m2' // Mount local Maven cache agar lebih cepat
         }
     }
     stages {
-        stage('Install npm') {
+        stage('Checkout Code') {
             steps {
-                sh '''
-                # Periksa apakah npm tersedia
-                if ! command -v npm >/dev/null 2>&1; then
-                    echo "npm tidak ditemukan, pastikan Node.js sudah terpasang dalam image"
-                    exit 1
-                fi
-
-                # Periksa package.json dan instal dependensi
-                if [ -f package.json ]; then
-                    echo "Installing dependencies..."
-                    npm install
-                else
-                    echo "File package.json tidak ditemukan, pastikan file ada di repository"
-                    exit 1
-                fi
-                '''
+                // Clone repository
+                git branch: 'main', url: 'https://github.com/MPernandes/Service-Backend.git'
             }
         }
+
         stage('Build') {
             steps {
-                echo 'Building project...'
-                sh '''
-                if [ -f package.json ]; then
-                    npm run build || echo "No build script defined in package.json"
-                else
-                    echo "Skipping build: package.json not found"
-                fi
-                '''
+                // Build proyek menggunakan Maven
+                echo 'Building project with Maven...'
+                sh 'mvn clean package -DskipTests' // Build tanpa menjalankan test
             }
         }
+
         stage('Test') {
             steps {
+                // Jalankan pengujian otomatis
                 echo 'Running tests...'
+                sh 'mvn test' // Jalankan unit tests
+            }
+        }
+
+        stage('Package') {
+            steps {
+                // Package file JAR/war jika diperlukan
+                echo 'Packaging application...'
                 sh '''
-                if [ -f ./jenkins/scripts/test.sh ]; then
-                    chmod +x ./jenkins/scripts/test.sh
-                    ./jenkins/scripts/test.sh
+                if [ -f target/*.jar ]; then
+                    echo "JAR file found:"
+                    ls target/*.jar
                 else
-                    echo "Test script ./jenkins/scripts/test.sh not found"
+                    echo "No JAR file generated. Please check the build process."
                     exit 1
                 fi
                 '''
             }
         }
     }
+
     post {
         always {
             echo 'Pipeline selesai dijalankan.'
