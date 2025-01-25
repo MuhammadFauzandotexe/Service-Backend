@@ -24,5 +24,6 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public Boolean getReport() {
         List<AttendanceRecord> all = attendanceRecordRepository.findAll();
+
             return true;}
 }
