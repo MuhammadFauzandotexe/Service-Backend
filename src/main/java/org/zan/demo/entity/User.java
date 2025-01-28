@@ -30,6 +30,14 @@ public class User implements UserDetails {
     @Setter
     private String email;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "customer_id", referencedColumnName = "id")
+    private Customer customer;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "water_grid_id",referencedColumnName = "id")
+    private WaterGrid waterGrid;
+
     @Setter
     @Getter
     @Column(unique = true,nullable = false)

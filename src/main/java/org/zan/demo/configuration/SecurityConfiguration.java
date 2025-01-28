@@ -70,7 +70,8 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> {
                     // allow credential
-                    auth.requestMatchers("/api/v1/auth/login").permitAll();
+                    auth.requestMatchers("/api/v1/auth/**").permitAll();
+                    auth.requestMatchers("/api/v1/user-info/update").permitAll();
                     auth.requestMatchers("/api/v1/employee/enroll/**").permitAll();
                     auth.requestMatchers("/actuator/**").permitAll();
                     // set role credential
